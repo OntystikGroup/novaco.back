@@ -39,10 +39,12 @@ class CompanyViewSet(viewsets.ModelViewSet):
 # Vacancy function views
 @csrf_exempt
 def vacancies_view(request) -> JsonResponse:
+
     if request.method == 'GET':
         vacancies = Vacancy.objects.all()
         serializer = PostVacancyListSerializer(vacancies, many=True)
         return JsonResponse({'result': serializer.data}, status=200)
+
     if request.method == 'POST':
         data = json.loads(request.body)
         serializer = PostVacancyDetailSerializer(data=data)
@@ -54,23 +56,31 @@ def vacancies_view(request) -> JsonResponse:
     return JsonResponse({"error": "Not found"}, status=404)
 
 
+@csrf_exempt
 def vacancy_detail_view(request, pk) -> JsonResponse:
 
     if request.method == 'GET':
         try:
             vacancy = Vacancy.objects.get(pk=pk)
-            data = vacancy.to_json(detailed=True)
-
-            return JsonResponse({'result': data}, status=200)
+            serializer = PostVacancyDetailSerializer(vacancy)
+            return JsonResponse({'result': serializer.data}, status=200)
         except Vacancy.DoesNotExist:
             return JsonResponse({'error': 'Vacancy did not found'}, status=404)
 
-    if request.method == 'POST':
-        serializer = PostVacancySerializer(data=request.data)
+    if request.method == 'PUT':
+        data = json.loads(request.body)
+        serializer = PostVacancyDetailSerializer(data=data)
         if serializer.is_valid():
             Vacancy.objects.create(**serializer.data)
             return JsonResponse({'result': serializer.data}, status=204)
-        return JsonResponse(serializer.error_messages, status=400)
+        return JsonResponse(serializer.errors, status=400)
+
+    if request.method == 'DELETE':
+        try:
+            Vacancy.objects.get(pk=pk).delete()
+            return JsonResponse({}, status=204)
+        except Exception as err:
+            pass
 
     return JsonResponse({'error': 'Unknown error'}, status=500)
 

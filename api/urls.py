@@ -18,6 +18,6 @@ urlpatterns += [
     # path('companies/<int:pk>', CompanyViewSet.as_view({'get': 'retrieve'})),
     # path('companies/<int:pk>/vacancies', company_vacancies),
     path('vacancies/', vacancies_view),
-    path('vacancies/<int:pk>', vacancy_detail_view),
+    path('vacancies/<int:pk>/', vacancy_detail_view),
     path('vacancies/top_ten/', vacancy_top_ten),
 ]
