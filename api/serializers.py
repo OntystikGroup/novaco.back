@@ -19,10 +19,21 @@ class CompanyListSerializer(CompanySerializer):
 
 
 class PostVacancySerializer(serializers.Serializer):
+    id = serializers.IntegerField()
     name = serializers.CharField(max_length=100)
     description = serializers.CharField(min_length=1)
     salary = serializers.FloatField()
-    company = serializers.IntegerField()
+    company_id = serializers.IntegerField()
+
+
+class PostVacancyListSerializer(PostVacancySerializer):
+    id = None
+    description = None
+    company_id = None
+
+
+class PostVacancyDetailSerializer(PostVacancySerializer):
+    id = None
 
 
 class VacancySerializer(serializers.ModelSerializer):
