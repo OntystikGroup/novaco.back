@@ -1,10 +1,11 @@
 from django.db import models
-
+from django.contrib.auth.models import AbstractUser, User
 
 # Create your models here.
 class Company(models.Model):
 
     name = models.CharField(max_length=100)
+    logo_url = models.TextField(null=True)
     description = models.TextField()
     city = models.CharField(max_length=50)
     address = models.TextField()
@@ -48,3 +49,8 @@ class Vacancy(models.Model):
         }
 
 
+class Resume(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='resume')
+    experience_year = models.IntegerField(null=True)
+    skills = models.CharField(max_length=255, null=True)
+    preferred_salary = models.FloatField(null=True)

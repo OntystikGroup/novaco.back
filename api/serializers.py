@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from api.models import Company, Vacancy
+from django.contrib.auth.models import User
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -51,3 +52,15 @@ class VacancyDetailSerializer(VacancySerializer):
     class Meta(VacancySerializer.Meta):
         model = Vacancy
         fields = '__all__'
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=255)
+    password = serializers.CharField(max_length=255)
+
+    def validate(self, attrs):
+        username = attrs['username']
+        password = attrs['password']
+
+        return attrs
+

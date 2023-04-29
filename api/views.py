@@ -4,8 +4,11 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from api.models import Company, Vacancy
 from api.serializers import CompanySerializer, CompanyDetailSerializer,\
     CompanyListSerializer, VacancyListSerializer, \
@@ -37,7 +40,8 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
 
 # Vacancy function views
-@csrf_exempt
+@api_view(['GET', 'POST'])
+@permission_classes((IsAuthenticated, ))
 def vacancies_view(request) -> JsonResponse:
 
     if request.method == 'GET':
@@ -56,7 +60,8 @@ def vacancies_view(request) -> JsonResponse:
     return JsonResponse({"error": "Not found"}, status=404)
 
 
-@csrf_exempt
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes((IsAuthenticated, ))
 def vacancy_detail_view(request, pk) -> JsonResponse:
 
     if request.method == 'GET':
@@ -84,53 +89,17 @@ def vacancy_detail_view(request, pk) -> JsonResponse:
 
     return JsonResponse({'error': 'Unknown error'}, status=500)
 
-
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
 def vacancy_top_ten(request) -> JsonResponse:
     vacancies_ordered = Vacancy.objects.order_by('-salary')[:10]
     data = [vacancy.to_json() for vacancy in vacancies_ordered]
     return JsonResponse({'result': data}, status=200)
 
 
-# class VacancyViewSet(viewsets.ModelViewSet):
-#
-#     serializer_action_classes = {
-#         'list': VacancyListSerializer,
-#         'retrieve': VacancyDetailSerializer,
-#         'create': VacancySerializer,
-#         'update': VacancyDetailSerializer,
-#     }
-#
-#     def get_serializer_class(self):
-#         return self.serializer_action_classes[self.action]
-#
-#     @action(detail=False, methods=['GET'])
-#     def top_ten(self, request):
-#         vacancies = Vacancy.objects.all().order_by('-salary')[:10]
-#         serializer = VacancyListSerializer(vacancies, many=True)
-#         return Response(serializer.data)
-#
-#     def get_queryset(self):
-#         return Vacancy.objects.all()
+class LoginUserView(TokenObtainPairView):
+    permission_classes = [AllowAny]
 
 
-# def company_detail(request, pk) -> JsonResponse:
-#     try:
-#         company = Company.objects.get(pk=pk)
-#         data = company.to_json(detailed=True)
-#         return JsonResponse({'result': data}, status=200)
-#     except Company.DoesNotExist:
-#         return JsonResponse({'error': 'Company did not found'}, status=404)
-#     return JsonResponse({'error': 'Unknown error'}, status=500)
-#
-#
-# def company_vacancies(request, pk) -> JsonResponse:
-#     try:
-#         company = Company.objects.get(pk=pk)
-#         vacancies = company.vacancies.all()
-#         data = [vacancy.to_json() for vacancy in vacancies]
-#         return JsonResponse({'result': data}, status=200)
-#     except Company.DoesNotExist:
-#         return JsonResponse({'error': 'Company did not found'}, status=404)
-#     return JsonResponse({'error': 'Unknown error'}, status=500)
-
-
+class RegisterUserView(TokenObtainPairView):
+    permission_classes = [AllowAny]
