@@ -1,14 +1,11 @@
 import json
 
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.http.response import JsonResponse
 from rest_framework import viewsets
 from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from api.models import Company, Vacancy
 from api.serializers import CompanySerializer, CompanyDetailSerializer,\
     CompanyListSerializer, VacancyListSerializer, \
@@ -40,14 +37,14 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
 
 # Vacancy function views
-@api_view(['GET', 'POST'])
+@api_view(['POST', 'GET'])
 @permission_classes((IsAuthenticated, ))
-def vacancies_view(request) -> JsonResponse:
+def vacancies_view(request) -> Response:
 
     if request.method == 'GET':
         vacancies = Vacancy.objects.all()
         serializer = PostVacancyListSerializer(vacancies, many=True)
-        return JsonResponse({'result': serializer.data}, status=200)
+        return Response(serializer.data, status=200)
 
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -55,46 +52,46 @@ def vacancies_view(request) -> JsonResponse:
         if serializer.is_valid():
             vacancy = Vacancy.objects.create(**serializer.data)
             vacancy_data = PostVacancyDetailSerializer(vacancy).data
-            return JsonResponse({"result": vacancy_data}, status=201)
-        return JsonResponse(serializer.errors, status=403)
-    return JsonResponse({"error": "Not found"}, status=404)
+            return Response(vacancy_data, status=201)
+        return Response(serializer.errors, status=403)
+    return Response({"error": "Not found"}, status=404)
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['PUT', 'DELETE', 'GET'])
 @permission_classes((IsAuthenticated, ))
-def vacancy_detail_view(request, pk) -> JsonResponse:
+def vacancy_detail_view(request, pk) -> Response:
 
     if request.method == 'GET':
         try:
             vacancy = Vacancy.objects.get(pk=pk)
             serializer = PostVacancyDetailSerializer(vacancy)
-            return JsonResponse({'result': serializer.data}, status=200)
+            return Response(serializer.data, status=200)
         except Vacancy.DoesNotExist:
-            return JsonResponse({'error': 'Vacancy did not found'}, status=404)
+            return Response({'error': 'Vacancy did not found'}, status=404)
 
     if request.method == 'PUT':
         data = json.loads(request.body)
         serializer = PostVacancyDetailSerializer(data=data)
         if serializer.is_valid():
             Vacancy.objects.create(**serializer.data)
-            return JsonResponse({'result': serializer.data}, status=204)
-        return JsonResponse(serializer.errors, status=400)
+            return Response(serializer.data, status=204)
+        return Response(serializer.errors, status=400)
 
     if request.method == 'DELETE':
         try:
             Vacancy.objects.get(pk=pk).delete()
-            return JsonResponse({}, status=204)
+            return Response({}, status=204)
         except Exception as err:
             pass
 
-    return JsonResponse({'error': 'Unknown error'}, status=500)
+    return Response({'error': 'Unknown error'}, status=500)
 
-@api_view(['GET'])
-@permission_classes((IsAuthenticated, ))
+
 def vacancy_top_ten(request) -> JsonResponse:
-    vacancies_ordered = Vacancy.objects.order_by('-salary')[:10]
-    data = [vacancy.to_json() for vacancy in vacancies_ordered]
-    return JsonResponse({'result': data}, status=200)
+    if request.method == 'GET':
+        vacancies_ordered = Vacancy.objects.order_by('-salary')[:10]
+        data = [vacancy.to_json() for vacancy in vacancies_ordered]
+        return JsonResponse({'result': data}, status=200)
 
 
 class LoginUserView(TokenObtainPairView):
