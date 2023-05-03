@@ -1,20 +1,23 @@
 import json
 
 from django.http.response import JsonResponse
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+# from rest_framework_jwt.views import ObtainJSONWebToken
 from api.models import Company, Vacancy
-from api.serializers import CompanySerializer, CompanyDetailSerializer,\
-    CompanyListSerializer, VacancyListSerializer, \
-    PostVacancySerializer, PostVacancyListSerializer,\
-    PostVacancyDetailSerializer
+from api.serializers import (CompanySerializer, CompanyDetailSerializer,
+    CompanyListSerializer, VacancyListSerializer,
+    PostVacancySerializer, PostVacancyListSerializer,
+    PostVacancyDetailSerializer, LoginUserSerializer,
+    RegisterUserSerializer, UserSerializer, LoggedUserSerializer)
+from api.permissions import IsAuthenticatedStaffOrReadOnly
 
 
 class CompanyViewSet(viewsets.ModelViewSet):
-
+    permission_classes = [IsAuthenticatedStaffOrReadOnly]
     serializer_action_classes = {
         'list': CompanyListSerializer,
         'retrieve': CompanyDetailSerializer,
@@ -38,7 +41,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
 # Vacancy function views
 @api_view(['POST', 'GET'])
-@permission_classes((IsAuthenticated, ))
+@permission_classes((IsAuthenticatedStaffOrReadOnly, ))
 def vacancies_view(request) -> Response:
 
     if request.method == 'GET':
@@ -58,7 +61,7 @@ def vacancies_view(request) -> Response:
 
 
 @api_view(['PUT', 'DELETE', 'GET'])
-@permission_classes((IsAuthenticated, ))
+@permission_classes((IsAuthenticatedStaffOrReadOnly, ))
 def vacancy_detail_view(request, pk) -> Response:
 
     if request.method == 'GET':
@@ -96,7 +99,32 @@ def vacancy_top_ten(request) -> JsonResponse:
 
 class LoginUserView(TokenObtainPairView):
     permission_classes = [AllowAny]
+    serializer_class = LoginUserSerializer
+
+    def post(self, request, *args, **kwargs):
+        user = request.data
+        serializer = self.serializer_class(data=user)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(LoggedUserSerializer(serializer.data).data, status=status.HTTP_200_OK)
 
 
 class RegisterUserView(TokenObtainPairView):
     permission_classes = [AllowAny]
+    serializer_class = RegisterUserSerializer
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            user = serializer.save()
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(UserSerializer(serializer.data).data, status=status.HTTP_200_OK)
+
+
+class RefreshUserTokenView(TokenRefreshView):
+    permission_classes = [AllowAny]
+
+
+# class LogoutUserView(API)

@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'api.apps.ApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -170,6 +171,8 @@ JWT_AUTH = {
     'JWT_SECRET_KEY': SECRET_KEY,
     'JWT_ALGORITHM': 'HS256',
     'JWT_ALLOW_REFRESH': True,
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=28),
 }
+
+AUTH_USER_MODEL = 'api.User'
