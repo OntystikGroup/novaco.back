@@ -2,9 +2,11 @@ import json
 
 from django.http.response import JsonResponse
 from django.db.models import Q
+from django.db.models.functions import Lower
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import permission_classes, api_view
+from rest_framework.permissions import AllowAny
 from api.permissions import IsAuthenticatedStaffOrReadOnly
 from api.models import Vacancy
 from api.serializers import (
@@ -69,9 +71,13 @@ def vacancy_top_ten(request) -> JsonResponse:
 
 
 @api_view(["GET"])
+@permission_classes([AllowAny])
 def search_by_param(request) -> Response:
     query = request.query_params.get('query')
     if not query:
         return Response([], status=status.HTTP_200_OK)
-    result = Vacancy.objects.filter(Q(name__contains=query) | Q(company__name__contains=query))
+    result = Vacancy.objects.annotate(
+        lname=Lower('name'),
+        lcompany_name=Lower('company__name')
+    ).filter(Q(lname__contains=query) | Q(lcompany_name__contains=query))
     return Response(PostVacancyListSerializer(result, many=True).data, status=status.HTTP_200_OK)
