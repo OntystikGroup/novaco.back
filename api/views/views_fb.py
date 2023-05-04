@@ -1,13 +1,14 @@
 import json
 
 from django.http.response import JsonResponse
+from django.db.models import Q
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import permission_classes, api_view
 from api.permissions import IsAuthenticatedStaffOrReadOnly
 from api.models import Vacancy
 from api.serializers import (
                             PostVacancyListSerializer, PostVacancyDetailSerializer,
-                            PostVacancySerializer
                             )
 
 
@@ -65,3 +66,12 @@ def vacancy_top_ten(request) -> JsonResponse:
         vacancies_ordered = Vacancy.objects.order_by('-salary')[:10]
         data = [vacancy.to_json() for vacancy in vacancies_ordered]
         return JsonResponse({'result': data}, status=200)
+
+
+@api_view(["GET"])
+def search_by_param(request) -> Response:
+    query = request.query_params.get('query')
+    if not query:
+        return Response([], status=status.HTTP_200_OK)
+    result = Vacancy.objects.filter(Q(name__contains=query) | Q(company__name__contains=query))
+    return Response(PostVacancyListSerializer(result, many=True).data, status=status.HTTP_200_OK)

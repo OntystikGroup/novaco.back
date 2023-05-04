@@ -3,7 +3,8 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenBlacklistView, TokenRefreshView
 from api.views import CompanyViewSet, \
     vacancies_view, vacancy_detail_view, vacancy_top_ten, \
-    LoginUserView, RegisterUserView, VacancyRespondView
+    LoginUserView, RegisterUserView, VacancyRespondView, \
+    search_by_param
 
 
 company_router = DefaultRouter()
@@ -18,6 +19,7 @@ urlpatterns += [
     path('vacancies/', vacancies_view),
     path('vacancies/<int:pk>/', vacancy_detail_view),
     path('vacancies/top_ten/', vacancy_top_ten),
+    path('search', search_by_param),
     path('auth/login/', LoginUserView.as_view()),
     path('auth/logout/', TokenBlacklistView.as_view()),
     path('auth/refresh/', TokenRefreshView.as_view()),
