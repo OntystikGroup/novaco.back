@@ -167,12 +167,9 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-JWT_AUTH = {
-    'JWT_SECRET_KEY': SECRET_KEY,
-    'JWT_ALGORITHM': 'HS256',
-    'JWT_ALLOW_REFRESH': True,
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=28),
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(seconds=5),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1)
 }
 
 AUTH_USER_MODEL = 'api.User'

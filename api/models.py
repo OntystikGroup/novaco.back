@@ -90,4 +90,38 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def tokens(self):
         refresh = RefreshToken.for_user(self)
-        return {'refresh': str(refresh), 'access': str(refresh.access_token)}
+        return {"refresh": str(refresh), "access": str(refresh.access_token)}
+
+
+class RespondManager(models.Manager):
+    def create_respond(self, user_id, vacancy_id):
+        user = User.objects.get(pk=user_id)
+        vacancy = Vacancy.objects.get(pk=vacancy_id)
+
+        respond = Respond(user=user, vacancy=vacancy)
+        respond.save()
+
+        return respond
+
+
+class Respond(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='responds')
+    vacancy = models.ForeignKey(Vacancy, on_delete=models.CASCADE, related_name='vacancy')
+    respond_at = models.DateTimeField(auto_now_add=True)
+
+    objects = RespondManager()
+
+    class Meta:
+        unique_together = (('user', 'vacancy'),)
+
+    @property
+    def vacancy_name(self):
+        return self.vacancy.name
+
+    @property
+    def expecting_salary(self):
+        return self.vacancy.salary
+
+    @property
+    def company(self):
+        return self.vacancy.company.name
