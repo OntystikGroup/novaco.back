@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'api.apps.ApiConfig',
+    'customAuth.apps.AuthConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -172,4 +173,4 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1)
 }
 
-AUTH_USER_MODEL = 'api.User'
+AUTH_USER_MODEL = 'customAuth.User'

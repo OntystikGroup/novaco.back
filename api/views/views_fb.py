@@ -9,9 +9,7 @@ from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import AllowAny
 from api.permissions import IsAuthenticatedStaffOrReadOnly
 from api.models import Vacancy
-from api.serializers import (
-                            PostVacancyListSerializer, PostVacancyDetailSerializer,
-                            )
+from api.serializers import PostVacancyListSerializer, PostVacancyDetailSerializer
 
 
 # Vacancy function views
